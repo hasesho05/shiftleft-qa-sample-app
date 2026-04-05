@@ -5,6 +5,8 @@ type Task = {
   title: string;
   status: string;
   assignee: string;
+  approverID?: string;
+  rejectionReason?: string;
 };
 
 export function useTaskStore() {
