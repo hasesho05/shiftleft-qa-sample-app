@@ -33,3 +33,6 @@ export function TaskBoard() {
     </div>
   );
 }
+
+// DelegateButton integration point (imported in TaskCard)
+export const DELEGATION_ENABLED = true;
