@@ -67,3 +67,46 @@ func (h *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+// ApproveTask handles POST /tasks/:id/approve.
+func (h *TaskHandler) ApproveTask(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	taskID := r.PathValue("id")
+	role := r.Header.Get("X-User-Role")
+	approverID := r.Header.Get("X-User-ID")
+
+	if err := h.service.ApproveTask(taskID, approverID, role); err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// RejectTask handles POST /tasks/:id/reject.
+func (h *TaskHandler) RejectTask(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	taskID := r.PathValue("id")
+	var input struct {
+		Reason string `json:"reason"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.RejectTask(taskID, input.Reason); err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

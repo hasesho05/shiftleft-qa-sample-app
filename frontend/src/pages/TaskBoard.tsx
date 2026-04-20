@@ -1,19 +1,35 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { TaskCard } from "../components/TaskCard";
+import { ApprovalDialog } from "../components/ApprovalDialog";
 import { useTaskStore } from "../store/taskStore";
-import { fetchTasks, transitionTask } from "../api/tasks";
+import { fetchTasks, transitionTask, approveTask, rejectTask } from "../api/tasks";
 
 export function TaskBoard() {
   const { tasks, setTasks, updateTaskStatus } = useTaskStore();
+  const [approvalTarget, setApprovalTarget] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTasks().then(setTasks);
   }, [setTasks]);
 
-  const handleTransition = async (id: string, newStatus: string) => {
-    await transitionTask(id, newStatus);
-    updateTaskStatus(id, newStatus);
+  const handleRequestApproval = async (id: string) => {
+    await transitionTask(id, "pending_approval");
+    updateTaskStatus(id, "pending_approval");
   };
+
+  const handleApprove = async (id: string) => {
+    await approveTask(id);
+    updateTaskStatus(id, "done");
+    setApprovalTarget(null);
+  };
+
+  const handleReject = async (id: string, reason: string) => {
+    await rejectTask(id, reason);
+    updateTaskStatus(id, "in_progress");
+    setApprovalTarget(null);
+  };
+
+  const targetTask = tasks.find((t) => t.id === approvalTarget);
 
   return (
     <div className="task-board">
@@ -26,10 +42,21 @@ export function TaskBoard() {
             title={task.title}
             status={task.status}
             assignee={task.assignee}
-            onTransition={handleTransition}
+            onRequestApproval={handleRequestApproval}
           />
         ))}
       </div>
+
+      {targetTask && (
+        <ApprovalDialog
+          taskId={targetTask.id}
+          taskTitle={targetTask.title}
+          isOpen={true}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          onClose={() => setApprovalTarget(null)}
+        />
+      )}
     </div>
   );
 }

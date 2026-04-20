@@ -32,3 +32,13 @@ func RequireRole(allowed ...Role) func(http.Handler) http.Handler {
 		})
 	}
 }
+
+// CanApprove checks whether a role has approval privileges.
+func CanApprove(role Role) bool {
+	return role == RoleLead || role == RoleAdmin
+}
+
+// RequireApprovalRole is a convenience middleware for approval endpoints.
+func RequireApprovalRole() func(http.Handler) http.Handler {
+	return RequireRole(RoleLead, RoleAdmin)
+}

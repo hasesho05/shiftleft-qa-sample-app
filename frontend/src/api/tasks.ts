@@ -21,3 +21,19 @@ export async function transitionTask(id: string, newStatus: string): Promise<voi
   });
   if (!res.ok) throw new Error("Failed to transition task");
 }
+
+export async function approveTask(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/tasks/${id}/approve`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Failed to approve task");
+}
+
+export async function rejectTask(id: string, reason: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/tasks/${id}/reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) throw new Error("Failed to reject task");
+}
